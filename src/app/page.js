@@ -108,7 +108,7 @@ export default function Home() {
                   </Typography>
                          </CardContent>
                 <CardActions>
-                  <Button fullWidth variant="contained" sx={{ backgroundColor: "yellow" }}>
+                  <Button fullWidth variant="contained" sx={{ backgroundColor: "yellow",color:"black" }}>
            Add to Cart
                       </Button>
           </CardActions>
