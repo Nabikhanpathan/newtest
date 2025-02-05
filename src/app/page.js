@@ -1,101 +1,122 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { GoogleOAuthProvider, GoogleLogin, googleLogout } from "@react-oauth/google";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  TextField,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Container,
+} from "@mui/material";
+import axios from "axios";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [user, setUser] = useState(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  useEffect(() => {
+    axios.get("https://fakestoreapi.com/products").then((response) => {
+       setProducts(response.data);
+    setFilteredProducts(response.data);
+    });
+
+           axios.get("https://fakestoreapi.com/products/categories").then((response) => {
+      setCategories(response.data);
+    });
+  }, []);
+
+  const handleSearch = (event) => {
+        const query = event.target.value.toLowerCase();
+    setSearch(query);
+  setFilteredProducts(products.filter((product) => product.title.toLowerCase().includes(query)));
+  };
+
+  const handleCategorySelect = (category) => {
+       setSelectedCategory(category);
+  setFilteredProducts(category ? products.filter((product) => product.category === category) : products);
+  };
+
+  return (
+    <GoogleOAuthProvider clientId="google id">
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            E-Commerce
+          </Typography>
+          <TextField
+      label="Search"
+               variant="outlined"
+            size="small"
+          value={search}
+            onChange={handleSearch}
+          sx={{ backgroundColor: "white", borderRadius: 1, mr: 2 }}
+          />
+                       {user ? (
+            <Button color="inherit" onClick={() => { googleLogout(); setUser(null); }}>
+              Logout
+            </Button>
+                      )   : (
+            <GoogleLogin
+              onSuccess={(res) => {
+                setUser(res.credential);
+              }}
+              onError={() => console.log("Login Failed")}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      <Drawer
+      variant="permanent"
+                sx={{
+        width: 240,
+        flexShrink: 0,
+         [`& .MuiDrawer-paper`]: { width: 240, position: "fixed" },
+  }}
+>
+  <List>
+    <ListItem component="button" onClick={() => handleCategorySelect(null)}>
+      <ListItemText primary="All Categories" />
+    </ListItem>
+              {categories.map((category) => (
+      <ListItem component="button" key={category} onClick={() => handleCategorySelect(category)}>
+        <ListItemText primary={category} />
+      </ListItem>
+    ))}
+  </List>
+</Drawer>
+
+<Container sx={{ ml: "260px", mt: 4 }}>
+  <Grid container spacing={2}>
+    {filteredProducts.map((product) => (
+                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+           <Card>
+          <CardMedia component="img" height="200" image={product.image} alt={product.title} />
+          <CardContent>
+                   <Typography variant="h6">{product.title}</Typography>
+            <Typography variant="body1">${product.price}</Typography>
+            <Typography variant="body2" color="textSecondary">
+                  {product.category}
+            </Typography>
+                       </CardContent>
+        </Card>
+              </Grid>
+    ))}
+  </Grid>
+          </Container>
+</GoogleOAuthProvider>
   );
 }
